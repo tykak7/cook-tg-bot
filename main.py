@@ -1,71 +1,49 @@
 import asyncio
 import logging
-from aiogram import F, Router, types
-from aiogram import Bot, Dispatcher, types
-from aiogram.filters import CommandStart, Command
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram import types
+from aiogram import Bot, Dispatcher
 
+#import menu_settings
 import security
-#from aiogram.utils.chat_action import ChatActionSender
-from aiogram.enums import ParseMode, ChatAction
-#from aiogram.types import InlineKeyboardMarkup
-#from aiogram.utils.keyboard import InlineKeyboardBuilder
+#from routers.commands.base_commands import router
+from routers import router as main_router
 
 bot= Bot(token=security.TOKEN)
 dp = Dispatcher()
+dp.include_router(main_router)
 
 #router = Router(name=__name__)
 
-@dp.message(CommandStart())
-async def handle_start(message: types.Message):
-    url = "https://ibb.co/0JH1C6K"
-    await message.answer_photo(photo=url,
-                               caption=f"Здравствуй, <b>{message.from_user.full_name}</b>!\n"
-                         f"Выбирай подходящий рецепт/меню и твори!",
-                               action=ChatAction.UPLOAD_PHOTO,
-                               parse_mode=ParseMode.HTML)
 
+#@Dispatcher(bot).callback_query_handler(lambda c: c.data.startswith('menu_first_btn'))
+@dp.callback_query(lambda c: c.data == 'menu_first_btn')
+async def new_menu_buttons(callback_query: types.CallbackQuery):
+    button_data = callback_query.data
+    if button_data == 'menu_first_btn':
+        # Действия для первой кнопки
+        await bot.send_message(
+            chat_id=callback_query.message.chat.id,
+            text="Вы выбрали 'Самое быстрое меню'."
+        )
+    elif button_data == 'menu_second_btn':
+        # Действия для второй кнопки
+        await bot.send_message(
+            chat_id=callback_query.message.chat.id,
+            text="Вы выбрали 'Летнее меню'.")
 
-@dp.message(Command("menu"))
-async def handle_menu_command(message: types.Message):
-    menu_first_btn = InlineKeyboardButton(
-        text="Самое быстрое меню", url="https://www.youtube.com/shorts/bvJN1NS7nsY")
-    btn_one = InlineKeyboardButton(
-        text="Самое быстрое меню",
-        url="https://www.youtube.com/shorts/bvJN1NS7nsY")
-    row = [menu_first_btn]
-    rowg = [btn_one]
-    rows = [row, rowg]
-    markup = InlineKeyboardMarkup(inline_keyboard=rows)
-    await message.answer(
-        text=f"Ссылки на загатовки:",
-        reply_markup=markup)
+    elif button_data == 'menu_third_btn':
+        # Действия для третьей кнопки
+        await bot.send_message(
+            chat_id=callback_query.message.chat.id,
+            text="Вы выбрали 'Меню на любой вкус'."
+        )
+    await new_menu_buttons(callback_query)
 
-@dp.message(Command("menu"))
-async def handle_menu_command(message: types.Message):
-    btn = InlineKeyboardButton(text="Самое быстрое меню")
-    await message.answer(text=f"Выберите один из 7 вариантов меню на неделю:",
-                         reply_markup=markup)
+    #await bot.answer_callback_query(callback_query.id)
+    #await bot.send_message(callback_query.from_user.id, 'Well done!')
+#async def menu_button_process(callback_query: types.CallbackQuery):
+#    await process_menu_button
 
-@dp.message(Command("ideas"))
-async def handle_menu(message: types.Message):
-    await message.answer(f"Что приготовить на:")
-
-@dp.message(Command("search"))
-async def handle_menu(message: types.Message):
-    await message.answer(f"Давай попробуем найти рецепт!")
-
-@dp.message(Command("cooking_from"))
-async def handle_menu(message: types.Message):
-    await message.answer(f"Что приготовить из...")
-
-@dp.message(Command("digest"))
-async def handle_menu(message: types.Message):
-    await message.answer(f"Тематические сборники рецептов:")
-
-@dp.message(Command("otmena"))
-async def handle_menu(message: types.Message):
-    await message.answer(f"Если вы уверенны, что хотите отменить подписку - нажмите кнопку ниже 🔽")
 
 async def main():
     logging.basicConfig(level=logging.INFO)
